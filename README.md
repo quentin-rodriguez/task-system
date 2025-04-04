@@ -1,21 +1,14 @@
 # TaskSystem
 
-**TODO: Add description**
+## Architecture
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `task_system` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:task_system, "~> 0.1.0"}
-  ]
-end
+```mermaid
+flowchart LR
+    TR[WorkerRegistry] --> TWS[WorkerSupervisor]
+    TWS -- Supervises --> TW[TaskWorker]
+    TST[(TaskStorage)] <-- Persist --> TD{TaskDispatcher} 
+    TD -- Send --> TS[TaskSupervisor]
+    TS -- Process --> TW
+    TW --> LOG@{ shape: lean-r, label: "Log task result" }
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/task_system>.
 
