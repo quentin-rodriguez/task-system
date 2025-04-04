@@ -8,8 +8,11 @@ defmodule TaskSystem.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: TaskSystem.Worker.start_link(arg)
-      # {TaskSystem.Worker, arg}
+      {Registry, keys: :unique, name: TaskSystem.TaskWorkerRegistry},
+      TaskSystem.TaskWorkerSupervisor,
+
+      {Task.Supervisor, name: TaskSystem.TaskSupervisor},
+      TaskSystem.TaskDispatcher
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
