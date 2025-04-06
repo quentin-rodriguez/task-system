@@ -9,11 +9,12 @@ defmodule TaskSystem.Application do
   def start(_type, _args) do
     children = [
       {Registry, keys: :unique, name: TaskSystem.TaskWorkerRegistry},
-      TaskSystem.TaskWorkerSupervisor,
-
       {Task.Supervisor, name: TaskSystem.TaskSupervisor},
+      TaskSystem.TaskWorkerSupervisor,
+      TaskSystem.TaskQueue,
       TaskSystem.TaskDispatcher
     ]
+
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

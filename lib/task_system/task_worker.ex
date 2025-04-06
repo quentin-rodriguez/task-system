@@ -38,7 +38,7 @@ defmodule TaskSystem.TaskWorker do
       tasks_processed: state.tasks_processed + 1
     }
 
-    {:reply, task, new_state}
+    {:reply, {:ok, state.id, task}, new_state}
   end
 
   @impl true

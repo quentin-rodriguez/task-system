@@ -3,41 +3,46 @@ defmodule TaskSystem.TaskDispatcher do
 
   require Logger
 
+  alias TaskSystem.TaskQueue
+
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def add_task(task) do
-    GenServer.call(__MODULE__, {:add_task, task})
-  end
-
-  # def stop_task(task_id) do
-  #   GenServer.call(__MODULE__, {:stop_task, task_id})
-  # end
-
   @impl true
   def init(_opts) do
+    send(self(), :loop)
     {:ok, %{}}
   end
 
   @impl true
-  def handle_call({:add_task, task}, from, state) do
-    task_pid = Task.Supervisor.async_nolink(TaskSystem.TaskSupervisor, fn ->
-      TaskSystem.TaskWorker.process_task(1, task)
-    end)
+  def handle_info(:loop, state) do
+    case TaskQueue.dequeue() do
+      {task_id, task} ->
+        task_pid = Task.Supervisor.async_nolink(TaskSystem.TaskSupervisor, fn ->
+          TaskSystem.TaskWorker.process_task(1, task)
+        end)
+        send(self(), :loop)
 
-    new_state = Map.put(state, task_pid.ref, from)
+        {:ok, Map.put(state, task_pid.ref, task_id)}
 
-    {:reply, :ok, new_state}
+      :empty ->
+        Process.send_after(self(), :loop, 5)
+        {:noreply, state}
+    end
   end
 
-  # @impl true
-  # def handle_call({:stop_task, task_id}, _from, state) do
+  @impl true
+  def handle_info({ref, {:ok, worker_id, task}}, state) do
+    Logger.info("It's fine !!!")
 
-  # end
+    {:noreply, Map.delete(state, ref)}
+  end
 
-  def handle_info(msg, state) do
-    
+  def handle_info({:DOWN, ref, :process, _pid, reason}, state) do
+    Logger.error("Error reason: #{reason}")
+
+    {:noreply, Map.delete(state, ref)}
   end
 
 end
