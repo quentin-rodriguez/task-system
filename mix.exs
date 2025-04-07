@@ -7,7 +7,8 @@ defmodule TaskSystem.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -25,4 +26,12 @@ defmodule TaskSystem.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
+
+  defp aliases do
+    [
+      setup: ["deps.get"],
+      test: ["setup", "test"]
+    ]
+  end
+
 end
