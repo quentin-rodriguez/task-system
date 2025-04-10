@@ -8,11 +8,11 @@ defmodule TaskSystem.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Registry, keys: :unique, name: TaskSystem.TaskWorkerRegistry},
-      {Task.Supervisor, name: TaskSystem.TaskSupervisor},
-      TaskSystem.TaskWorkerSupervisor,
+      TaskSystem.TaskStorage,
       TaskSystem.TaskQueue,
-      TaskSystem.TaskDispatcher
+      {Registry, keys: :unique, name: TaskSystem.TaskWorkerRegistry},
+      {TaskSystem.TaskSupervisor, max_pool_size: 5},
+      {Bandit, scheme: :http, plug: TaskSystem.TaskApi, port: 4000}
     ]
 
 

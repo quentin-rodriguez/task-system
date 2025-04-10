@@ -1,7 +1,6 @@
 defmodule TaskSystem.TaskQueue do
   use GenServer
 
-  @type task_id() :: pos_integer()
   @type task() :: any()
 
   @table_name :task_queue
@@ -11,12 +10,12 @@ defmodule TaskSystem.TaskQueue do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @spec enqueue(task()) :: task_id()
-  def enqueue(task) do
-    GenServer.call(__MODULE__, {:enqueue, task})
+  @spec enqueue(any()) :: pos_integer()
+  def enqueue(data) do
+    GenServer.call(__MODULE__, {:enqueue, data})
   end
 
-  @spec dequeue() :: {task_id(), task()}
+  @spec dequeue() :: {pos_integer(), any()} | :empty
   def dequeue do
     GenServer.call(__MODULE__, :dequeue)
   end
@@ -33,20 +32,19 @@ defmodule TaskSystem.TaskQueue do
   end
 
   @impl true
-  def handle_call({:enqueue, task}, _from, state) do
-    task_id = System.system_time(:second)
-    task_data = {task_id, :erlang.term_to_binary(task)}
-    :dets.insert(@table_name, task_data)
+  def handle_call({:enqueue, data}, _from, state) do
+    task_id = System.os_time(:millisecond)
 
-    {:reply, task_id, :queue.in(task_data, state)}
+    :dets.insert(@table_name, {task_id, data})
+    {:reply, task_id, :queue.in({task_id, data}, state)}
   end
 
   @impl true
   def handle_call(:dequeue, _from, state) do
     case :queue.out(state) do
-      {{:value, {task_id, task}}, queue} ->
-        :dets.delete(@table_name, task_id)
-        {:reply, {task_id, :erlang.binary_to_term(task)}, queue}
+      {{:value, value}, queue} ->
+        :dets.delete_object(@table_name, value)
+        {:reply, value, queue}
 
       {:empty, queue} ->
         {:reply, :empty, queue}
@@ -55,9 +53,9 @@ defmodule TaskSystem.TaskQueue do
 
   @impl true
   def terminate(_reason, _state) do
+    :dets.sync(@table_name)
     :dets.close(@table_name)
   end
-
 
   defp load_from_table(table) do
     table
