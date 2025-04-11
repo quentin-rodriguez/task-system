@@ -15,6 +15,20 @@ flowchart LR
     TW --> LOG@{ shape: lean-r, label: "Log task result" }
 ```
 
+## 📋
+
+
+## ✅ TODO list
+
+- [x] Implement a GenServer-based worker (TaskWorker) 
+- [x] Implement a supervisor (TaskSupervisor) 
+- [x] Implement a public API module (TaskManager)
+- [x] Implement a persistent task queue
+- [x] Provide a Dockerfile and deployment instructions
+- [x] Provide tests covering 
+- [x] Include documentation
+- [x] Implement a simple Web API  
+
 ## 💻 Local development
 
 1. Clone the repository
@@ -46,7 +60,7 @@ mix deps.get
 iex -S mix
 ```
 
-5. (Optional) You can use the following url to interact with the project: [http://localhost:4000/tasks](http://localhost:4000/tasks)
+5. (Optional) Use web API
 
 `curl` requests can be used to communicate with the API
 
@@ -66,3 +80,23 @@ curl -X DELETE http://localhost:4000/tasks/:id
 ```
 
 ## 📥 Production deployment
+
+1. Install [Fly CLI](https://fly.io/docs/flyctl/install/)
+```bash
+curl -L https://fly.io/install.sh | sh
+```
+
+2. Login with [Fly CLI](https://fly.io/docs/flyctl/install/)
+```bash
+fly auth login
+```
+
+3. Initialize the application
+```bash
+fly launch
+```
+
+4. Deploy the application
+```bash
+fly deploy
+```

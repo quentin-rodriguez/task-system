@@ -26,13 +26,15 @@ defmodule TaskSystem.TaskApi do
 
   import Plug.Conn
 
+  alias TaskSystem.TaskManager
+
   @spec init(Keyword.t()) :: Keyword.t()
   def init(opts), do: opts
 
   @spec call(Plug.Conn.t(), Keyword.t()) :: Plug.Conn.t()
   def call(%Plug.Conn{method: "GET", path_info: ["tasks"]} = conn, _opts) do
     json(conn, :ok, %{
-      tasks: TaskSystem.list_tasks()
+      tasks: TaskManager.list_tasks()
     })
   end
 
@@ -42,7 +44,7 @@ defmodule TaskSystem.TaskApi do
         data = JSON.decode!(body)
 
         json(conn, :created, %{
-          id: TaskSystem.add_task(data),
+          id: TaskManager.add_task(data),
           data: data
         })
 
@@ -57,12 +59,11 @@ defmodule TaskSystem.TaskApi do
   def call(%Plug.Conn{method: "DELETE", path_info: ["tasks", id]} = conn, _opts) do
     task_id = String.to_integer(id)
 
-
-    case TaskSystem.stop_task(task_id) do
+    case TaskManager.stop_task(task_id) do
       :ok ->
         send_resp(conn, :no_content, "")
 
-      {:error, :not_found} ->
+      {:error, :task_not_found} ->
         json(conn, :not_found, %{
           status: 404,
           message: "Task not found!"

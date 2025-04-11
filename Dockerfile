@@ -1,4 +1,4 @@
-FROM elixir:1.18.3-otp-27-alpine
+FROM elixir:1.18.3-otp-27-alpine AS build
 
 # Set the environment to production
 ENV MIX_ENV=prod
@@ -27,8 +27,22 @@ COPY lib/ lib/
 # Compile the application
 RUN mix compile
 
-# Start the application
-CMD [ "mix", "run", "--no-halt" ]
+# Release the application
+RUN mix release
+
+
+FROM alpine:3.21
+
+# 
+RUN apk add --no-cache build-base ncurses-libs
+
+WORKDIR /opt/task_system
+
+COPY --from=build /opt/task_system/_build/prod/rel/task_system/ ./
+
+ENTRYPOINT [ "bin/task_system" ]
+
+CMD [ "start" ]
 
 
 
