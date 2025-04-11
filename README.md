@@ -33,7 +33,17 @@ flowchart LR
 
 ## 📋 Technical choices
 
+1. **Data Storage**
+    - For persistence, I used a [DETS](https://www.erlang.org/doc/apps/stdlib/dets.html) because the data is saved directly to a file on disk, which can be retrieved later
+    - To be able to retrieve the list of tasks currently being processed and to share the state of the various workers, I used an Agent, which has the advantage of being a wrapper for state management and sharing.
 
+2. **Performance**
+    - To manage an excess of tasks that could be sent all at once, I used the [:queue](https://www.erlang.org/doc/apps/stdlib/queue.html) module provided in Erlang, which is a FIFO queue system for queuing and redistributing in the same order the different data that need to be processed
+    - For the workers, I used a system of consumers who come to look if there's a message to extract it from the queue and process it afterwards, which makes it possible to have a concurrent system for processing data more quickly.
+    - To avoid duplicating processes in workers, I used the [Registry](https://hexdocs.pm/elixir/main/Registry.html) module, which provides a uniqueness constraint, as each registry entry is directly linked to its affiliated process.
+
+3. **Web API**
+    - To keep the API as simple as possible, I just used a `plug` and `bandit` as the HTTP server is the one used by default on the Phoenix framework, when generating a new project, but it would have been the same to use `plug_cowboy` (or "cowboy" for short).
 
 
 ## ✅ TODO
