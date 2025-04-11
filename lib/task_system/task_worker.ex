@@ -63,6 +63,8 @@ defmodule TaskSystem.TaskWorker do
   def handle_info(:loop, state) do
     case TaskQueue.dequeue() do
       :empty ->
+        # TaskQueue is empty, check again in 1 second
+        # to avoid spamming it with useless deque requests
         schedule_loop(@next_interval)
 
       {task_id, data} ->
