@@ -16,7 +16,7 @@ defmodule TaskSystem.TaskWorkerTest do
     :ok
   end
 
-  test "ddd" do
+  test "Stop a worker in the middle of data processing" do
     id = TaskQueue.enqueue(:task_one)
     pid = start_link_supervised!({TaskWorker, 1})
     :erlang.trace(pid, true, [:receive])
