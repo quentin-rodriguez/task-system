@@ -1,6 +1,18 @@
 defmodule TaskSystem.TaskQueue do
   @moduledoc """
+  It's a simple queue, when we want to add a task, it will be put on hold in the queue before it is taken care of by a worker.
 
+  ## Persistence
+
+  TaskQueue supports data persistence to make it more durable.
+  To start data persistence, simply call the `start_link/1` function e.g.
+
+    {:ok, pid} = #{__MODULE__}.start_link([])
+
+  ## Usage
+
+  To use TaskQueue, simply use the functions `enqueue/1` and `dequeue/0`.
+  For the rest, everything is handled automatically: queue polling, error handling, task processing times, restarting downtime workers.
   """
 
   use GenServer
@@ -9,20 +21,45 @@ defmodule TaskSystem.TaskQueue do
 
   @table_name :task_queue
 
+  @doc """
+  Starts the TaskQueue GenServer.
+
+  At initialization time, it retrieves the data contained in the "#{@table_name}" file to fill the queue.
+  If the file does not exist, it will automatically create it and the queue will be empty.
+
+  ## Examples
+
+    iex> {:ok, pid} = TaskSystem.TaskQueue.start_link([])
+    iex> is_pid(pid)
+    true
+  """
   @spec start_link(any()) :: GenServer.on_start()
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-  end
+  def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: __MODULE__)
 
+  @doc """
+  Inserts a value into the queue, returning an integer id.
+
+  ## Examples
+
+    iex> id = TaskSystem.TaskQueue.enqueue(:task_one)
+    iex> is_integer(id)
+    true
+  """
   @spec enqueue(any()) :: pos_integer()
-  def enqueue(data) do
-    GenServer.call(__MODULE__, {:enqueue, data})
-  end
+  def enqueue(data), do: GenServer.call(__MODULE__, {:enqueue, data})
 
+  @doc """
+  Retrieves the first value entered in the queue.
+  If there is no value, a :empty value is returned.
+
+  ## Examples
+
+    iex> TaskSystem.TaskQueue.enqueue(:task_one)
+    iex> TaskSystem.TaskQueue.dequeue()
+    :task_one
+  """
   @spec dequeue() :: {pos_integer(), any()} | :empty
-  def dequeue do
-    GenServer.call(__MODULE__, :dequeue)
-  end
+  def dequeue, do: GenServer.call(__MODULE__, :dequeue)
 
   @impl true
   def init(_init_arg) do

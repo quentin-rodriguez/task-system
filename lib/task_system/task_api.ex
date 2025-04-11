@@ -1,6 +1,27 @@
 defmodule TaskSystem.TaskApi do
   @moduledoc """
-  
+  This plug allows interaction with the business logic of the `task_system` project
+  by providing an API which is available from the url **http://localhost:4000/tasks**.
+
+  It provides 3 endpoints with the following methods:
+
+  **POST**: To create a new task to be put in `TaskSystem.TaskQueue`
+
+  ```bash
+  curl -X POST http://localhost:4000/tasks -d '{"name": "Jean", "number": "42"}'
+  ```
+
+  **GET**: To get a list of running tasks
+
+  ```bash
+  curl -X GET http://localhost:4000/tasks
+  ```
+
+  **DELETE**: To stop a running task
+
+  ```bash
+  curl -X DELETE http://localhost:4000/tasks/:id
+  ```
   """
 
   import Plug.Conn

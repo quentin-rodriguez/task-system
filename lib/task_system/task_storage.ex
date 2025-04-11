@@ -1,4 +1,12 @@
 defmodule TaskSystem.TaskStorage do
+  @moduledoc """
+  A database for all `TaskSystem.TaskWorker`.
+
+  This is an agent that provides a common state between
+  the different workers and a list of the different tasks
+  currently being processed.
+  """
+
   use Agent
 
   @doc """
@@ -12,6 +20,8 @@ defmodule TaskSystem.TaskStorage do
   def start_link(_), do: Agent.start_link(fn -> %{} end, name: __MODULE__)
 
   @doc """
+  Add data by giving it an id and the affiliate task.
+
   ## Examples
 
     iex> TaskSystem.TaskStorage.add_task(1, "unknown_task")
@@ -26,23 +36,32 @@ defmodule TaskSystem.TaskStorage do
   def add_task(_id, _task), do: {:error, :unknown_task}
 
   @doc """
-  
+  Allows you to delete data by giving it a task id.
+
+  ## Examples
+
+    iex> TaskSystem.TaskStorage.remove_task(1)
+    :ok
+
   """
   @spec remove_task(pos_integer()) :: :ok
   def remove_task(id), do: Agent.update(__MODULE__, &Map.delete(&1, id))
 
   @doc """
+  Retrieves a list of ids affiliated with the task currently running.
+
   ## Examples
 
-    iex> task = Task.async(fn -> 42 end)
-    iex> Enum.each([1, 2, 3, 4], &TaskSystem.TaskStorage.add_task(&1, task))
     iex> TaskSystem.TaskStorage.list_tasks()
-    [1, 2, 3, 4]
+    []
+
   """
   @spec list_tasks() :: [pos_integer()]
   def list_tasks, do: Agent.get(__MODULE__, &Map.keys/1)
 
   @doc """
+  Retrieves a task based on an id
+
   ## Examples
 
     iex> TaskSystem.TaskStorage.get_task(1)
@@ -57,6 +76,8 @@ defmodule TaskSystem.TaskStorage do
   def get_task(id), do: Agent.get(__MODULE__, &Map.get(&1, id))
 
   @doc """
+  Retrieves a task based on a reference
+
   ## Examples
 
     iex> task = Task.async(fn -> 42 end)

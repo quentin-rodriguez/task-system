@@ -1,23 +1,48 @@
 defmodule TaskSystem.TaskWorker do
+  @moduledoc """
+  This is a worker for `TaskSystem.TaskQueue`.
+
+  Workers are responsible for interacting with `TaskSystem.TaskQueue`.
+  It automatically retrieves data from the queue and processes it immediately afterwards.
+  Data processing is handled by an asynchronous task.
+
+  Note that you can start a worker manually, but I recommend using `TaskSystem.TaskSupervisor`
+  to manage a pool of workers to take advantage of concurrency to retrieve and process data.
+  """
+
   use GenServer
+
+  require Logger
 
   alias TaskSystem.{
     TaskQueue,
     TaskStorage
   }
 
-  require Logger
-
-  @type worker_id() :: pos_integer()
-
+  # 1 second in milliseconds
   @next_interval :timer.seconds(1)
 
-  @spec start_link(worker_id()) :: GenServer.on_start()
+  @doc """
+  Starts the `#{__MODULE__}` GenServer
+
+  At initialization time, a repeating task is launched
+  to retrieve data from the `TaskSystem.TaskQueue`.
+
+  ## Examples
+
+    iex> {:ok, pid} = TaskSystem.TaskWorker.start_link(1)
+    iex> is_pid(pid)
+    true
+  """
+  @spec start_link(pos_integer()) :: GenServer.on_start()
   def start_link(id) do
     GenServer.start_link(__MODULE__, id, name: via_tuple(id))
   end
 
-  @spec child_spec(worker_id()) :: Supervisor.child_spec()
+  @doc """
+  These are the GenServer specifications `#{__MODULE__}`.
+  """
+  @spec child_spec(pos_integer()) :: Supervisor.child_spec()
   def child_spec(id) do
     %{
       id: {__MODULE__, id},
