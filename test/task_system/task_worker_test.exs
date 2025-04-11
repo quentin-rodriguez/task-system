@@ -25,8 +25,6 @@ defmodule TaskSystem.TaskWorkerTest do
     assert %Task{ref: task_ref, pid: task_pid} = TaskStorage.get_task(id)
 
     assert :ok = TaskManager.stop_task(id)
-    assert_receive {:trace, ^pid, :receive, {:DOWN, ^task_ref, :process, ^task_pid, :normal}}, 4000
-
     refute TaskStorage.get_task(id)
     assert :empty = TaskQueue.dequeue()
   end

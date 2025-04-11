@@ -32,7 +32,7 @@ defmodule TaskSystem.TaskManager do
     case TaskStorage.get_task(id) do
       %Task{pid: pid} ->
         Process.exit(pid, :normal)
-        :ok
+        TaskStorage.remove_task(id)
 
       nil ->
         {:error, :task_not_found}

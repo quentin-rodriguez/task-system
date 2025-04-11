@@ -76,10 +76,17 @@ defmodule TaskSystem.TaskWorker do
 
   @impl true
   def handle_info({ref, {:ok, task_id, data}}, state) do
-    TaskStorage.remove_task(task_id)
     Process.demonitor(ref, [:flush])
 
-    Logger.info("Task #{task_id} has just been completed with the following content: #{inspect(data)}")
+    case TaskStorage.get_task(task_id) do
+      %Task{} ->
+        Logger.info("Task #{task_id} has just been completed with the following content: #{inspect(data)}")
+        TaskStorage.remove_task(task_id)
+
+      nil ->
+        Logger.info("Task #{task_id} has just been stopped with the reference #{inspect(ref)}")
+        :ok
+    end
 
     {:noreply, state}
   end
@@ -87,10 +94,10 @@ defmodule TaskSystem.TaskWorker do
   def handle_info({:DOWN, ref, :process, _pid, :normal}, state) do
     case TaskStorage.get_task_by_ref(ref) do
       {task_id, %Task{}} ->
-        Logger.warning("Task #{task_id} has just been stopped with the reference #{inspect(ref)}")
+        Logger.info("Task #{task_id} has just been stopped with the reference #{inspect(ref)}")
         TaskStorage.remove_task(task_id)
 
-      _ ->
+      nil ->
         :ok
     end
 
