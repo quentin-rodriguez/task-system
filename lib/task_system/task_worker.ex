@@ -50,8 +50,8 @@ defmodule TaskSystem.TaskWorker do
 
   @impl true
   def handle_info({ref, {:ok, task_id, data}}, state) do
-    Process.demonitor(ref, [:flush])
     TaskStorage.remove_task(task_id)
+    Process.demonitor(ref, [:flush])
 
     Logger.info("Task #{task_id} has just been completed with the following content: #{inspect(data)}")
 
@@ -60,7 +60,7 @@ defmodule TaskSystem.TaskWorker do
 
   def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
     case TaskStorage.get_task_by_ref(ref) do
-      {task_id, %Task{}} when is_integer(task_id) ->
+      {task_id, %Task{}} ->
         Logger.warning("Task #{task_id} received DOWN message for reference #{inspect(ref)}")
         TaskStorage.remove_task(task_id)
 
@@ -87,10 +87,10 @@ defmodule TaskSystem.TaskWorker do
     end)
   end
 
-  defp via_tuple(id), do: {:via, Registry, {TaskSystem.TaskWorkerRegistry, id}}
-
   defp schedule_loop(interval \\ nil)
   defp schedule_loop(interval) when is_integer(interval), do: Process.send_after(self(), :loop, interval)
   defp schedule_loop(_interval), do: send(self(), :loop)
+
+  defp via_tuple(id), do: {:via, Registry, {TaskSystem.TaskWorkerRegistry, id}}
 
 end

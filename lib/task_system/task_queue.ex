@@ -1,4 +1,8 @@
 defmodule TaskSystem.TaskQueue do
+  @moduledoc """
+
+  """
+
   use GenServer
 
   @type task() :: any()
@@ -33,7 +37,7 @@ defmodule TaskSystem.TaskQueue do
 
   @impl true
   def handle_call({:enqueue, data}, _from, state) do
-    task_id = System.os_time(:millisecond)
+    task_id = System.os_time()
 
     :dets.insert(@table_name, {task_id, data})
     {:reply, task_id, :queue.in({task_id, data}, state)}
@@ -42,8 +46,8 @@ defmodule TaskSystem.TaskQueue do
   @impl true
   def handle_call(:dequeue, _from, state) do
     case :queue.out(state) do
-      {{:value, value}, queue} ->
-        :dets.delete_object(@table_name, value)
+      {{:value, {id, _} = value}, queue} ->
+        :dets.delete(@table_name, id)
         {:reply, value, queue}
 
       {:empty, queue} ->
@@ -60,6 +64,7 @@ defmodule TaskSystem.TaskQueue do
   defp load_from_table(table) do
     table
     |> :dets.select([{{:"$1", :"$2"}, [], [{{:"$1", :"$2"}}]}])
+    |> Enum.sort_by(fn {id, _} -> id end)
     |> :queue.from_list()
   end
 

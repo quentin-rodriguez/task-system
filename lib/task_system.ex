@@ -13,7 +13,7 @@ defmodule TaskSystem do
     to: TaskQueue,
     as: :enqueue
 
-  @spec list_tasks() :: %{pos_integer() => Task.t()}
+  @spec list_tasks() :: [pos_integer()]
   defdelegate list_tasks,
     to: TaskStorage,
     as: :list_tasks
