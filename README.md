@@ -1,24 +1,43 @@
-# TaskSystem
+# TaskSystem - Worker system for processing tasks
 
-![Elixir](https://img.shields.io/badge/1.18.0-535353?&logo=elixir&logoColor=white&label=Elixir&labelColor=%234B275F&style=flat-square)
+![Elixir](https://img.shields.io/badge/1.18.3-535353?&logo=elixir&logoColor=white&label=Elixir&labelColor=%234B275F&style=flat-square)
 ![Erlang](https://img.shields.io/badge/27.2-535353?logo=erlang&logoColor=fff&label=Erlang&labelColor=A90533&style=flat-square)
+
+This is an exercise in adding a task so that it can be processed asynchronously and stopped at any time by manual action.
+
 
 ## 🏬 Architecture
 
 ```mermaid
 flowchart LR
-    TWS[TaskWorkerSupervisor] -- Supervises --> TW[TaskWorker]
-    TR[TaskWorkerRegistry] --> TW
-    TST[(TaskStorage)] <-- Persist --> TD{TaskDispatcher} 
-    TD -- Send --> TS[TaskSupervisor]
-    TS -- Process --> TW
-    TW --> LOG@{ shape: lean-r, label: "Log task result" }
+    flowchart LR
+    subgraph Web API
+        TA[TaskApi] -- Request --> TM[TaskManager] 
+    end
+    
+    TM -- add_task/1 --> TQ
+    TM -- list_tasks/0 --> TST
+    TM -- stop_task/1 --> TW
+
+    subgraph Application
+        TS[TaskSupervisor] -- Supervises --> TW[TaskWorker]
+        TR[TaskWorkerRegistry] --> TW
+        TQ[TaskQueue] -- Consume --> TW
+        TST[(TaskStorage)] <-- Fetch / Insert / Delete --> TW
+        TW -- Log --> LOG@{ shape: lean-r, label: "task result" }
+    end
+
+    subgraph Storage
+       DETS[Disk DETS] --> TQ
+    end
 ```
 
-## 📋
+## 📋 Technical choices
 
 
-## ✅ TODO list
+
+
+## ✅ TODO
 
 - [x] Implement a GenServer-based worker (TaskWorker) 
 - [x] Implement a supervisor (TaskSupervisor) 
@@ -38,7 +57,7 @@ git clone https://github.com/quentin-rodriguez/task-system.git
 cd task-system
 ```
 
-2. Change Version for elixir and erlang
+2. Change Version
 
 If possible, use the versions specified in the `.tool-versions` file with a tool such as [mise](https://github.com/jdx/mise) or [asdf](https://github.com/asdf-vm/asdf).
 
@@ -61,8 +80,6 @@ iex -S mix
 ```
 
 5. (Optional) Use web API
-
-`curl` requests can be used to communicate with the API
 
 Create a new task
 ```bash
