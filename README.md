@@ -10,8 +10,7 @@ This is an exercise in adding a task so that it can be processed asynchronously 
 
 ```mermaid
 flowchart LR
-    flowchart LR
-    subgraph Web API
+    flowchart LR    subgraph Web API
         TA[TaskApi] -- Request --> TM[TaskManager] 
     end
     
