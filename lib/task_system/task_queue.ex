@@ -19,7 +19,8 @@ defmodule TaskSystem.TaskQueue do
 
   @type task() :: any()
 
-  @table_name String.to_charlist("tmp/task_queue.dat")
+  @tmp_dir "tmp"
+  @table_name String.to_charlist("#{@tmp_dir}/task_queue.dat")
 
   @doc """
   Starts the TaskQueue GenServer.
@@ -63,7 +64,7 @@ defmodule TaskSystem.TaskQueue do
 
   @impl true
   def init(_init_arg) do
-    File.mkdir_p("tmp/")
+    File.mkdir_p(@tmp_dir)
 
     case :dets.open_file(@table_name, type: :set) do
       {:ok, table} ->
