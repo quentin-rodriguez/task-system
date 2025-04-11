@@ -55,6 +55,7 @@ defmodule TaskSystem.TaskWorker do
   @impl true
   def init(id) do
     schedule_loop()
+    Logger.info("Worker #{id} is started!")
     {:ok, %{id: id}}
   end
 
@@ -83,10 +84,10 @@ defmodule TaskSystem.TaskWorker do
     {:noreply, state}
   end
 
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
+  def handle_info({:DOWN, ref, :process, _pid, :normal}, state) do
     case TaskStorage.get_task_by_ref(ref) do
       {task_id, %Task{}} ->
-        Logger.warning("Task #{task_id} received DOWN message for reference #{inspect(ref)}")
+        Logger.warning("Task #{task_id} has just been stopped with the reference #{inspect(ref)}")
         TaskStorage.remove_task(task_id)
 
       _ ->

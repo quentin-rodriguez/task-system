@@ -3,6 +3,7 @@ defmodule TaskSystem.TaskWorkerTest do
 
   alias TaskSystem.{
     TaskWorker,
+    TaskManager,
     TaskStorage,
     TaskQueue
   }
@@ -13,6 +14,21 @@ defmodule TaskSystem.TaskWorkerTest do
     start_link_supervised!(TaskQueue)
     on_exit(fn -> File.rm!("task_queue") end)
     :ok
+  end
+
+  test "ddd" do
+    id = TaskQueue.enqueue(:task_one)
+    pid = start_link_supervised!({TaskWorker, 1})
+    :erlang.trace(pid, true, [:receive])
+
+    assert_receive {:trace, ^pid, :receive, :loop}
+    assert %Task{ref: task_ref, pid: task_pid} = TaskStorage.get_task(id)
+
+    assert :ok = TaskManager.stop_task(id)
+    assert_receive {:trace, ^pid, :receive, {:DOWN, ^task_ref, :process, ^task_pid, :normal}}, 4000
+
+    refute TaskStorage.get_task(id)
+    assert :empty = TaskQueue.dequeue()
   end
 
   test "Data processing by a single worker" do
