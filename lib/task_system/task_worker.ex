@@ -93,6 +93,7 @@ defmodule TaskSystem.TaskWorker do
     {:noreply, state}
   end
 
+  @impl true
   def handle_info({:DOWN, ref, :process, _pid, :normal}, state) do
     case TaskStorage.get_task_by_ref(ref) do
       {task_id, %Task{}} ->
