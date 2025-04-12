@@ -68,7 +68,7 @@ defmodule TaskSystem.TaskWorker do
         schedule_loop(@next_interval)
 
       {task_id, data} ->
-        task = process_task(task_id, data)
+        task = process_task(task_id, data, state.id)
         TaskStorage.add_task(task_id, task)
         schedule_loop()
     end
@@ -109,12 +109,14 @@ defmodule TaskSystem.TaskWorker do
   @impl true
   def handle_info(_msg, state), do: {:noreply, state}
 
-  defp process_task(task_id, data) do
+  defp process_task(task_id, data, worker_id) do
     Task.async(fn ->
       processing_time =
         1..5
         |> Enum.random()
         |> :timer.seconds()
+
+      Logger.info("Task #{task_id} is being processed by the worker #{worker_id}")
 
       Process.sleep(processing_time)
 
