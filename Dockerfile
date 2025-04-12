@@ -47,7 +47,3 @@ ENTRYPOINT [ "bin/task_system" ]
 
 # Start the application
 CMD [ "start" ]
-
-
-
-

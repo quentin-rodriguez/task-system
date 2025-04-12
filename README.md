@@ -22,12 +22,12 @@ flowchart LR
         TS[TaskSupervisor] -- Supervises --> TW[TaskWorker]
         TR[TaskWorkerRegistry] --> TW
         TQ[TaskQueue] -- Consume --> TW
-        TST[(TaskStorage)] <-- Fetch / Insert / Delete --> TW
         TW -- Log --> LOG@{ shape: lean-r, label: "task result" }
     end
 
     subgraph Storage
-       DETS[Disk DETS] --> TQ
+       DETS[DETS] --> TQ
+       TST[(TaskStorage)] <-- Fetch / Insert / Delete --> TW
     end
 ```
 
@@ -68,7 +68,7 @@ cd task-system
 
 2. Change Version
 
-If possible, use the versions specified in the `.tool-versions` file with a tool such as [mise](https://github.com/jdx/mise) or [asdf](https://github.com/asdf-vm/asdf).
+Use the versions specified in the `.tool-versions` file with a tool such as [mise](https://github.com/jdx/mise) or [asdf](https://github.com/asdf-vm/asdf).
 
 ```bash
 mise install
@@ -90,17 +90,17 @@ iex -S mix
 
 5. (Optional) Use web API
 
-Create a new task
+- Create a new task
 ```bash
 curl -X POST http://localhost:4000/tasks -d '{"name": "Jean", "number": "42"}'
 ```
 
-Get a list of running tasks
+- Get a list of running tasks
 ```bash
 curl -X GET http://localhost:4000/tasks
 ```
 
-Stop a running task
+- Stop a running task
 ```bash
 curl -X DELETE http://localhost:4000/tasks/:id
 ```
