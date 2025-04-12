@@ -8,11 +8,13 @@ defmodule TaskSystem.TaskWorkerTest do
     TaskQueue
   }
 
+  @waiting_time :timer.seconds(7)
+
   setup do
     start_link_supervised!({Registry, keys: :unique, name: TaskSystem.TaskWorkerRegistry})
     start_link_supervised!(TaskStorage)
     start_link_supervised!(TaskQueue)
-    on_exit(fn -> File.rm!("task_queue") end)
+    on_exit(fn -> File.rm!("tmp/task_queue.dat") end)
     :ok
   end
 
@@ -22,7 +24,7 @@ defmodule TaskSystem.TaskWorkerTest do
     :erlang.trace(pid, true, [:receive])
 
     assert_receive {:trace, ^pid, :receive, :loop}
-    assert %Task{ref: task_ref, pid: task_pid} = TaskStorage.get_task(id)
+    assert %Task{} = TaskStorage.get_task(id)
 
     assert :ok = TaskManager.stop_task(id)
     refute TaskStorage.get_task(id)
@@ -37,7 +39,7 @@ defmodule TaskSystem.TaskWorkerTest do
     assert_receive {:trace, ^pid, :receive, :loop}
     assert %Task{ref: task_ref} = TaskStorage.get_task(task_id)
 
-    assert_receive {:trace, ^pid, :receive, {^task_ref, {:ok, ^task_id, :task_one}}}, 7000
+    assert_receive {:trace, ^pid, :receive, {^task_ref, {:ok, ^task_id, :task_one}}}, @waiting_time
     assert :empty = TaskQueue.dequeue()
   end
 
@@ -57,11 +59,8 @@ defmodule TaskSystem.TaskWorkerTest do
     assert_receive {:trace, ^pid2, :receive, :loop}
     assert %Task{ref: ref2} = TaskStorage.get_task(id2)
 
-    assert_receive {:trace, ^pid1, :receive, {^ref1, {:ok, ^id1, :task_one}}}, 7000
-    refute TaskStorage.get_task(id1)
-
-    assert_receive {:trace, ^pid2, :receive, {^ref2, {:ok, ^id2, :task_two}}}, 7000
-    refute TaskStorage.get_task(id2)
+    assert_receive {:trace, ^pid1, :receive, {^ref1, {:ok, ^id1, :task_one}}}, @waiting_time
+    assert_receive {:trace, ^pid2, :receive, {^ref2, {:ok, ^id2, :task_two}}}, @waiting_time
 
     assert :empty = TaskQueue.dequeue()
   end

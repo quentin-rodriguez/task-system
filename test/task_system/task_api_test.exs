@@ -17,7 +17,7 @@ defmodule TaskSystem.TaskApiTest do
     start_link_supervised!(TaskQueue)
     start_link_supervised!(TaskStorage)
     start_link_supervised!({TaskWorker, 1})
-    on_exit(fn -> File.rm!("task_queue") end)
+    on_exit(fn -> File.rm!("tmp/task_queue.dat") end)
     :ok
   end
 

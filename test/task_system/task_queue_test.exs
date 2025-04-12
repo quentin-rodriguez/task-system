@@ -4,7 +4,7 @@ defmodule TaskSystem.TaskQueueTest do
   alias TaskSystem.TaskQueue
 
   setup do
-    on_exit(fn -> File.rm!("task_queue") end)
+    on_exit(fn -> File.rm!("tmp/task_queue.dat") end)
     {:ok, %{pid: start_link_supervised!(TaskQueue)}}
   end
 
